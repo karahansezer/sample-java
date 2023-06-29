@@ -5,10 +5,7 @@ pipeline {
         DOCKERHUB_REPO = 'karahansezer/sample-java'
         DOCKERHUB_TAG = 'latest'
     }
-  
-    tools {
-        docker 'Docker'
-    }    
+      
     stages {
         stage('Checkout') {
             steps {
