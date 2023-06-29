@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Maven build') {
             steps {
-                sh 'mvn clean install'
+            	 sh 'docker run -v $PWD:/app -w /app maven:3.8.1-openjdk-11-slim mvn clean install'
             }
         }
         stage('Build Docker image') {
