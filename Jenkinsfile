@@ -4,9 +4,7 @@ pipeline {
         DOCKERHUB_REPO = 'karahansezer/sample-java'
         DOCKERHUB_TAG = 'latest'
     }
-    agent {
-        label 'docker' 
-    }  
+    
     stages {
         stage('Checkout') {
             steps {
