@@ -1,11 +1,12 @@
 pipeline {
-    agent any
     environment {
         DOCKER_CREDENTIAL_ID = 'dockerhub'
         DOCKERHUB_REPO = 'karahansezer/sample-java'
         DOCKERHUB_TAG = 'latest'
     }
-      
+    agent {
+        label 'docker' 
+    }  
     stages {
         stage('Checkout') {
             steps {
