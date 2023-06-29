@@ -7,7 +7,7 @@ pipeline {
     }
     tools {
         maven 'M3'
-        docker 'Docker' // specify the Docker installation here
+        dockerTool 'Docker' // specify the Docker installation here
     }
     stages {
         stage('Checkout') {
