@@ -5,6 +5,9 @@ pipeline {
         DOCKERHUB_REPO = 'karahansezer/sample-java'
         DOCKERHUB_TAG = 'latest'
     }
+    tools {
+        maven 'M3'
+    }
     stages {
         stage('Checkout') {
             steps {
