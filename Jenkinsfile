@@ -11,16 +11,7 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
-    command:
-    - /bin/cat
     tty: true
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker
-  volumes:
-  - name: docker-config
-    secret:
-      secretName: docker-config
 """
         }
     }
@@ -32,7 +23,7 @@ spec:
         stage('Checkout') {
             steps {
                 checkout scm
-            }
+            }   
         }
 
         stage('Maven build') {
