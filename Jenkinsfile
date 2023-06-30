@@ -1,19 +1,16 @@
 pipeline {
     agent {
         kubernetes {
-            yaml """
+            yaml '''
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    some-label: some-label-value
 spec:
   containers:
   - name: docker
-    image: docker:dind
-    securityContext:
-      privileged: true
-      runAsUser: 0
+    image: docker:latest
+    command:
+    - cat
+    tty: true
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
@@ -21,8 +18,7 @@ spec:
   - name: docker-sock
     hostPath:
       path: /var/run/docker.sock
-      type: File
-"""
+'''
         }
     }
 
@@ -39,15 +35,34 @@ spec:
             }
         }
 
-        stage('Build and Push Docker image') {
+        stage('Build Docker image') {
             steps {
                 container('docker') {
-                    sh '''
-                        docker build -t docker.io/karahansezer/sample-java:latest $WORKSPACE
-                        docker login -u $DOCKER_USER -p $DOCKER_PASS
-                        docker push docker.io/karahansezer/sample-java:latest
-                    '''
+                    sh 'docker build -t docker.io/karahansezer/sample-java:latest .'
                 }
+            }
+        }
+
+        stage('Login Docker') {
+            steps {
+                container('docker') {
+                    sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                }
+            }
+        }
+
+        stage('Push Images to DockerHub') {
+            steps {
+                container('docker') {
+                    sh 'docker push docker.io/karahansezer/sample-java:latest'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            container('docker') {
+                sh 'docker logout'
             }
         }
     }
