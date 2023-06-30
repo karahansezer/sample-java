@@ -1,10 +1,7 @@
 pipeline {
-agent {
-  kubernetes {
-    // Use the default pod template
-    defaultContainer 'jnlp'
-    // Specify additional containers
-    yaml """
+    agent {
+        kubernetes {
+            yaml """
 apiVersion: v1
 kind: Pod
 metadata:
@@ -12,42 +9,49 @@ metadata:
     some-label: some-label-value
 spec:
   containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:debug
-    command:
-    - cat
-    tty: true
+  - name: docker
+    image: docker:dind
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+      type: File
 """
-  }
-}
-
-tools {
-  maven 'M3'
-}
-
-stages {
-  stage('Checkout') {
-    steps {
-      checkout scm
-    }
-  }
-
-  stage('Maven build') {
-    steps {
-      withMaven() {
-        sh 'mvn clean install'
-      }
-    }
-  }
-  
-  stage('Build and Push Docker image') {
-    steps {
-      container('kaniko') {
-        script {
-          sh '/kaniko/executor --context $WORKSPACE --dockerfile $WORKSPACE/Dockerfile --destination=docker.io/karahansezer/sample-java:latest'
         }
-      }
     }
-  }
-}
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Maven build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('Build and Push Docker image') {
+            steps {
+                container('docker') {
+                    sh '''
+                        docker build -t docker.io/karahansezer/sample-java:latest $WORKSPACE
+                        docker login -u $DOCKER_USER -p $DOCKER_PASS
+                        docker push docker.io/karahansezer/sample-java:latest
+                    '''
+                }
+            }
+        }
+    }
+    environment {
+        DOCKER_USER = 'karahansezer'
+        DOCKER_PASS = 'REtiVqR*52'
+    }
 }
