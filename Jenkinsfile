@@ -4,7 +4,10 @@ pipeline {
       yamlFile 'kaniko-builder.yaml'
     }
   }
-
+  options {
+        // Add the launch diagnostics flag
+        jvmArgs('-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.LAUNCH_DIAGNOSTICS=true')
+    }
   environment {
     APP_NAME = "sample-java"
     DOCKER_USER = "karahansezer"
