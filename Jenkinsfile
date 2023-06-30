@@ -1,3 +1,4 @@
+pipeline {
 agent {
   kubernetes {
     // Use the default pod template
