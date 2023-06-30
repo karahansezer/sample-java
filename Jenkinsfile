@@ -1,13 +1,5 @@
 pipeline {
-  agent {
-    kubernetes {
-      yamlFile 'kaniko-builder.yaml'
-    }
-  }
-  options {
-        // Add the launch diagnostics flag
-        jvmArgs('-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.LAUNCH_DIAGNOSTICS=true')
-    }
+  agent any // If no specific agent is required you can use 'any'
   environment {
     APP_NAME = "sample-java"
     DOCKER_USER = "karahansezer"
@@ -37,8 +29,8 @@ pipeline {
 
     stage('Build & Push with Kaniko') {
       steps {
-        container('kaniko') {
-          sh 'ls -la /kaniko'  // Add this line to list all files in the /kaniko directory
+        container('kaniko') { // here, 'kaniko' should be replaced with the name you gave to the Kaniko container in Jenkins UI
+          sh 'ls -la /kaniko'  
           sh "./executor --dockerfile ${WORKSPACE}/Dockerfile --context ${WORKSPACE} --destination=${DOCKER_USER}/${APP_NAME}:latest"
         }
       }
