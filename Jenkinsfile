@@ -39,14 +39,12 @@ pipeline {
 
 
     stage('Build & Push with Kaniko') {
-      steps {
-        container(name: 'kaniko', shell: '/busybox/sh') {
-          sh '''#!/busybox/sh
-
-            /kaniko/executor --dockerfile `pwd`/Dockerfile --context `pwd` --destination=${IMAGE_NAME}:${IMAGE_TAG} --destination=${IMAGE_NAME}:latest
-          '''
-        }
+  steps {
+    container('kaniko') {
+      script {
+        "/kaniko/executor --dockerfile ${WORKSPACE}/Dockerfile --context ${WORKSPACE} --destination=karahansezer/sample-java:latest --destination=karahansezer/sample-java:latest".execute()
       }
     }
   }
+}
 }
