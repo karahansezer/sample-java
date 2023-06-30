@@ -13,6 +13,7 @@ spec:
     image: docker:dind
     securityContext:
       privileged: true
+      runAsUser: 0
     volumeMounts:
     - mountPath: /var/run/docker.sock
       name: docker-sock
