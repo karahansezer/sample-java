@@ -1,16 +1,26 @@
 pipeline {
-    agent {
-        kubernetes {
-            label 'kaniko'
-        }
+
+  agent {
+    kubernetes {
+      yamlFile 'kaniko-builder.yaml'
+    }
+  }
+
+  environment {
+        APP_NAME = "sample-java"
+        DOCKER_USER = "karahansezer"
+        DOCKER_PASS = 'dockerhub'
+        IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+        IMAGE_TAG = "latest"
+
+
     }
 
-    tools {
-        maven 'M3'
-    }
+  stages {
 
-    stages {
-        stage('Checkout') {
+
+
+    stage('Checkout') {
             steps {
                 checkout scm
             }
@@ -24,14 +34,16 @@ pipeline {
             }
         }
 
-        stage('Build and push') {
-            steps {
-                container('kaniko') {
-                    sh '''
-                    /kaniko/executor --context ${WORKSPACE} --dockerfile ${WORKSPACE}/Dockerfile --destination karahansezer/sample-java
-                    '''
-                }
-            }
+
+    stage('Build & Push with Kaniko') {
+      steps {
+        container(name: 'kaniko', shell: '/busybox/sh') {
+          sh '''#!/busybox/sh
+
+            /kaniko/executor --dockerfile `pwd`/Dockerfile --context `pwd` --destination=${IMAGE_NAME}:${IMAGE_TAG} --destination=${IMAGE_NAME}:latest
+          '''
         }
+      }
     }
+  }
 }
