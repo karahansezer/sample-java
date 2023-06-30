@@ -1,22 +1,51 @@
 pipeline {
   agent {
     kubernetes {
-      cloud 'kubernetes'
-      label 'mypod'
+      // Use the default pod template
+      defaultContainer 'jnlp'
+      // Specify additional containers
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: some-label-value
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - cat
+    tty: true
+"""
     }
   }
+  
+  tools {
+    maven 'M3'
+  }
+
   stages {
-    stage('Test') {
+    stage('Checkout') {
       steps {
-        echo 'Hello, world!'
+        checkout scm
+      }
+    }
+
+    stage('Maven build') {
+      steps {
+        withMaven() {
+          sh 'mvn clean install'
+        }
       }
     }
     
-    stage('Build & Push with Kaniko') {
+    stage('Build and Push Docker image') {
       steps {
         container('kaniko') {
-          sh 'ls -la /kaniko'  // Add this line to list all files in the /kaniko directory
-          sh "./executor --dockerfile ${WORKSPACE}/Dockerfile --context ${WORKSPACE} --destination=${DOCKER_USER}/${APP_NAME}:latest"
+          sh '''
+            /kaniko/executor --context $WORKSPACE --dockerfile $WORKSPACE/Dockerfile --destination=docker.io/karahansezer/sample-java:latest
+          '''
         }
       }
     }
