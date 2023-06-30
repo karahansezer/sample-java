@@ -4,30 +4,37 @@ pipeline {
             yaml """
 apiVersion: v1
 kind: Pod
+metadata:
+  labels:
+    some-label: some-label-value
 spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
     command:
-    - /busybox/cat
+    - /bin/cat
     tty: true
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: docker-config
 """
         }
-    }
-    environment {
-        DOCKER_CREDENTIAL_ID = 'dockerhub'
-        DOCKERHUB_REPO = 'karahansezer/sample-java'
-        DOCKERHUB_TAG = 'latest'
     }
     tools {
         maven 'M3'
     }
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
+
         stage('Maven build') {
             steps {
                 withMaven() {
@@ -35,17 +42,12 @@ spec:
                 }
             }
         }
-        stage('Build and Push Docker image') {
+
+        stage('Build and push') {
             steps {
                 container('kaniko') {
-                    // Add your DockerHub credentials to the .docker/config.json file
                     sh '''
-                        mkdir -p /home/jenkins/.docker/
-                        echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"`echo -n 'karahansezer:REtiVqR*52' | base64`\"}}}" > /home/jenkins/.docker/config.json
-                    '''
-                    // Build and push the Docker image using Kaniko
-                    sh '''
-                        /kaniko/executor --context=${WORKSPACE} --dockerfile=${WORKSPACE}/Dockerfile --destination=${DOCKERHUB_REPO}:${DOCKERHUB_TAG}
+                    /kaniko/executor --context ${WORKSPACE} --dockerfile ${WORKSPACE}/Dockerfile --destination karahansezer/sample-java --docker-config /kaniko/.docker
                     '''
                 }
             }
