@@ -9,3 +9,9 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 COPY --from=build /app/target/app-0.0.1-SNAPSHOT.jar /app/my-app.jar
 ENTRYPOINT ["java", "-jar", "/app/my-app.jar"]
+
+FROM ubuntu
+RUN apt -y update; apt-get -y install curl
+RUN curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-oss-7.6.2-amd64.deb
+RUN dpkg -i filebeat-oss-7.6.2-amd64.deb
+ADD filebeat.yml /etc/filebeat/filebeat.yml
